@@ -3,80 +3,354 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="UnoSnake — Scandinavian and Japandi home inspiration, curated for warmer, calmer and more timeless spaces.">
+
+  <meta
+    name="description"
+    content="UnoSnake — Scandinavian and Japandi home inspiration, curated for warmer, calmer and more timeless spaces."
+  >
+
   <title>UnoSnake — Scandinavian & Japandi Home Inspiration</title>
+
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* Articles */
+    .articles {
+      padding: 80px 0;
+    }
+
+    .articles-header {
+      max-width: 720px;
+      margin-bottom: 40px;
+    }
+
+    .articles-header h2 {
+      margin-bottom: 14px;
+    }
+
+    .articles-header p {
+      margin: 0;
+    }
+
+    .articles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .article-card {
+      padding: 28px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.65);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .article-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+    }
+
+    .article-number {
+      display: block;
+      margin-bottom: 18px;
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      opacity: 0.55;
+    }
+
+    .article-card h3 {
+      margin-bottom: 12px;
+    }
+
+    .article-card p {
+      margin-bottom: 22px;
+    }
+
+    .article-link {
+      display: inline-block;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .social-note {
+      margin-top: 34px;
+      font-size: 0.9rem;
+      opacity: 0.65;
+    }
+
+    @media (max-width: 800px) {
+      .articles-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .articles {
+        padding: 60px 0;
+      }
+    }
+  </style>
 </head>
+
 <body>
+
   <header class="site-header">
+
     <a class="brand" href="index.html" aria-label="UnoSnake home">
       <span class="brand-mark">US</span>
       <span class="brand-name">UnoSnake</span>
     </a>
+
     <nav>
       <a href="#about">About</a>
+      <a href="#articles">Articles</a>
       <a href="privacy.html">Privacy</a>
       <a href="affiliate.html">Affiliate disclosure</a>
     </nav>
+
   </header>
 
+
   <main>
+
+    <!-- HERO -->
     <section class="hero">
+
       <div class="hero-copy">
-        <p class="eyebrow">SCANDINAVIAN · JAPANDI · WARM MINIMALISM</p>
-        <h1>Beautiful ideas for a warmer, calmer home.</h1>
-        <p class="lead">
-          UnoSnake curates home décor inspiration and thoughtfully selected product discoveries
-          for spaces that feel natural, timeless and inviting.
+
+        <p class="eyebrow">
+          SCANDINAVIAN · JAPANDI · WARM MINIMALISM
         </p>
-        <a class="button" href="#about">Discover UnoSnake</a>
+
+        <h1>
+          Beautiful ideas for a warmer, calmer home.
+        </h1>
+
+        <p class="lead">
+          UnoSnake curates home décor inspiration and thoughtfully selected
+          product discoveries for spaces that feel natural, timeless and inviting.
+        </p>
+
+        <div class="hero-actions">
+          <a class="article-link" href="#articles">
+            Explore our articles →
+          </a>
+        </div>
+
       </div>
-      <div class="hero-card" aria-hidden="true">
-        <div class="sun"></div>
-        <div class="arch"></div>
-        <div class="wood-panel"></div>
-        <div class="plant plant-a"></div>
-        <div class="plant plant-b"></div>
-      </div>
+
     </section>
 
-    <section id="about" class="section">
-      <p class="eyebrow">OUR APPROACH</p>
-      <h2>Simple. Natural. Considered.</h2>
+
+    <!-- ABOUT -->
+    <section id="about" class="content-section">
+
+      <div class="section-heading">
+        <p class="eyebrow">THE UNO SNAKE APPROACH</p>
+
+        <h2>
+          Simple spaces. Better choices.
+        </h2>
+
+        <p>
+          We focus on interiors that feel lived-in, calm and intentional —
+          combining Scandinavian simplicity with Japandi warmth.
+        </p>
+      </div>
+
+
       <div class="grid">
+
         <article>
           <span class="number">01</span>
-          <h3>Warm minimalism</h3>
-          <p>Soft neutrals, natural textures and understated details that make everyday rooms feel welcoming.</p>
+
+          <h3>
+            Warm minimalism
+          </h3>
+
+          <p>
+            Soft neutrals, natural textures and understated details that make
+            everyday rooms feel welcoming.
+          </p>
         </article>
+
+
         <article>
           <span class="number">02</span>
-          <h3>Curated discoveries</h3>
-          <p>We highlight products and ideas that fit a coherent interior rather than promoting clutter for its own sake.</p>
+
+          <h3>
+            Curated discoveries
+          </h3>
+
+          <p>
+            We highlight products and ideas that fit a coherent interior rather
+            than promoting clutter for its own sake.
+          </p>
         </article>
+
+
         <article>
           <span class="number">03</span>
-          <h3>Timeless inspiration</h3>
-          <p>Scandinavian, Japandi and organic influences guide a style designed to stay beautiful beyond a single trend.</p>
+
+          <h3>
+            Timeless inspiration
+          </h3>
+
+          <p>
+            Scandinavian, Japandi and organic influences guide a style designed
+            to stay beautiful beyond a single trend.
+          </p>
         </article>
+
       </div>
+
     </section>
 
-    <section class="quote">
-      <p>“Make everyday spaces feel a little more beautiful.”</p>
+
+    <!-- ARTICLES -->
+    <section id="articles" class="articles">
+
+      <div class="articles-header">
+
+        <p class="eyebrow">
+          UNO SNAKE JOURNAL
+        </p>
+
+        <h2>
+          Inspiration for your home.
+        </h2>
+
+        <p>
+          Discover practical ideas, décor inspiration and carefully selected
+          products to create a warmer and more timeless home.
+        </p>
+
+      </div>
+
+
+      <div class="articles-grid">
+
+
+        <article class="article-card">
+
+          <span class="article-number">
+            ARTICLE 01
+          </span>
+
+          <h3>
+            How to create a warm Scandinavian living room
+          </h3>
+
+          <p>
+            Natural materials, soft lighting and a restrained palette can
+            completely change the feeling of a living room.
+          </p>
+
+          <a class="article-link" href="#">
+            Read article →
+          </a>
+
+        </article>
+
+
+        <article class="article-card">
+
+          <span class="article-number">
+            ARTICLE 02
+          </span>
+
+          <h3>
+            7 Japandi décor ideas for a calmer home
+          </h3>
+
+          <p>
+            Discover simple ways to bring Japandi principles into your interior
+            without making your home feel cold or empty.
+          </p>
+
+          <a class="article-link" href="#">
+            Read article →
+          </a>
+
+        </article>
+
+
+        <article class="article-card">
+
+          <span class="article-number">
+            ARTICLE 03
+          </span>
+
+          <h3>
+            The timeless home: what is worth buying?
+          </h3>
+
+          <p>
+            A guide to choosing useful, beautiful pieces that can stay in your
+            home for years instead of following every new trend.
+          </p>
+
+          <a class="article-link" href="#">
+            Read article →
+          </a>
+
+        </article>
+
+
+      </div>
+
+
+      <p class="social-note">
+        More inspiration coming from the UnoSnake community and our social
+        channels.
+      </p>
+
     </section>
+
+
+    <!-- QUOTE -->
+    <section class="quote">
+
+      <p>
+        “Make everyday spaces feel a little more beautiful.”
+      </p>
+
+    </section>
+
   </main>
 
+
+  <!-- FOOTER -->
   <footer class="footer">
+
     <div>
+
       <strong>UnoSnake</strong>
-      <span>Home décor inspiration.</span>
+
+      <span>
+        Home décor inspiration.
+      </span>
+
     </div>
+
+
     <div class="footer-links">
-      <a href="privacy.html">Privacy Policy</a>
-      <a href="affiliate.html">Affiliate Disclosure</a>
+
+      <a href="privacy.html">
+        Privacy Policy
+      </a>
+
+      <a href="affiliate.html">
+        Affiliate Disclosure
+      </a>
+
     </div>
-    <p>© 2026 UnoSnake. All rights reserved.</p>
+
+
+    <p>
+      © 2026 UnoSnake. All rights reserved.
+    </p>
+
   </footer>
+
 </body>
 </html>
