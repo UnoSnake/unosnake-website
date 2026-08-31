@@ -1,44 +1,280 @@
-name: UnoSnake - Pinterest Sandbox Test
+name: UnoSnake - Automatic Product Discovery
 
 on:
   workflow_dispatch:
 
 jobs:
-  pinterest-test:
+  discover-product:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Test Pinterest Sandbox API
-        env:
-          PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+
+      # ============================================================
+      # 1. RÉCUPÉRER LES TENDANCES GOOGLE FRANCE
+      # ============================================================
+      - name: Get Google Trends France
+        id: trends
         run: |
           set -euo pipefail
 
           echo "========================================"
-          echo "UNO SNAKE - PINTEREST SANDBOX TEST"
+          echo "UNO SNAKE - GOOGLE TRENDS"
           echo "========================================"
 
-          HTTP_STATUS=$(curl -sS \
-            -o pinterest-response.json \
-            -w "%{http_code}" \
-            -X GET \
-            "https://api-sandbox.pinterest.com/v5/pins?page_size=5" \
-            -H "Authorization: Bearer ${PINTEREST_ACCESS_TOKEN}" \
-            -H "Content-Type: application/json")
+          curl -sS --fail-with-body \
+            -L \
+            -A "Mozilla/5.0 UnoSnake/1.0" \
+            "https://trends.google.com/trending/rss?geo=FR" \
+            -o trends.xml
 
-          echo "HTTP STATUS: $HTTP_STATUS"
+          python3 <<'PY'
+          import xml.etree.ElementTree as ET
+          import re
+
+          tree = ET.parse("trends.xml")
+          root = tree.getroot()
+
+          trends = []
+
+          for item in root.findall("./channel/item"):
+              title = item.findtext("title", "").strip()
+
+              if title:
+                  trends.append(title)
+
+          print("TENDANCES TROUVÉES:")
+          for i, trend in enumerate(trends[:20], 1):
+              print(f"{i}. {trend}")
+
+          # Mots-clés compatibles avec UnoSnake
+          keywords = [
+              "déco",
+              "decoration",
+              "décoration",
+              "maison",
+              "interieur",
+              "intérieur",
+              "salon",
+              "chambre",
+              "cuisine",
+              "meuble",
+              "mobilier",
+              "design",
+              "scandinave",
+              "japandi",
+              "bohème",
+              "boheme",
+              "minimaliste",
+              "lampe",
+              "lumière",
+              "luminaire",
+              "vase",
+              "miroir",
+              "tapis",
+              "étagère",
+              "etagere",
+              "table",
+              "chaise",
+              "canapé",
+              "canape",
+              "rangement",
+              "plante",
+              "bougie"
+          ]
+
+          selected = None
+
+          for trend in trends:
+              normalized = trend.lower()
+
+              if any(keyword in normalized for keyword in keywords):
+                  selected = trend
+                  break
+
+          # Fallback si aucune tendance déco n'est présente
+          if not selected:
+              fallback = [
+                  "décoration scandinave",
+                  "déco japandi",
+                  "vase céramique décoration",
+                  "lampe design salon",
+                  "décoration minimaliste maison",
+                  "rangement maison esthétique",
+                  "décoration bohème salon"
+              ]
+
+              # Choix déterministe basé sur le jour
+              import datetime
+
+              index = datetime.datetime.utcnow().timetuple().tm_yday % len(fallback)
+              selected = fallback[index]
+
+              print("")
+              print("Aucune tendance déco détectée.")
+              print(f"Fallback utilisé : {selected}")
+
+          print("")
+          print(f"TENDANCE / RECHERCHE RETENUE : {selected}")
+
+          with open("trend.txt", "w", encoding="utf-8") as f:
+              f.write(selected)
+          PY
+
+          TREND=$(cat trend.txt)
+
+          echo "TREND=$TREND" >> "$GITHUB_OUTPUT"
+
+
+      # ============================================================
+      # 2. RECHERCHE AUTOMATIQUE SUR LE WEB
+      # ============================================================
+      - name: Search Amazon products
+        id: search
+        env:
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          TREND: ${{ steps.trends.outputs.TREND }}
+        run: |
+          set -euo pipefail
+
+          echo "========================================"
+          echo "UNO SNAKE - PRODUCT SEARCH"
+          echo "========================================"
+
+          QUERY="site:amazon.fr/dp ${TREND} décoration maison"
+
+          echo "Recherche : $QUERY"
+
+          RESPONSE=$(curl -sS --fail-with-body \
+            -X POST \
+            "https://google.serper.dev/search" \
+            -H "X-API-KEY: ${SERPER_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg q "$QUERY" \
+              '{
+                q: $q,
+                gl: "fr",
+                hl: "fr",
+                num: 10
+              }')")
+
           echo ""
-          echo "===== PINTEREST SANDBOX RESPONSE ====="
+          echo "===== SERPER RESPONSE ====="
+          echo "$RESPONSE" | jq .
 
-          cat pinterest-response.json | jq .
+          echo "$RESPONSE" > serper.json
 
-          if [ "$HTTP_STATUS" != "200" ]; then
+          AMAZON_RESULT=$(echo "$RESPONSE" | jq -r '
+            .organic[]
+            | select(.link | test("amazon\\.fr"))
+            | .link
+          ' | head -1)
+
+          if [ -z "$AMAZON_RESULT" ]; then
             echo ""
-            echo "ERREUR: Pinterest Sandbox inaccessible."
+            echo "Aucun résultat Amazon trouvé."
+            exit 1
+          fi
+
+          echo ""
+          echo "Amazon URL trouvée :"
+          echo "$AMAZON_RESULT"
+
+          echo "AMAZON_URL=$AMAZON_RESULT" >> "$GITHUB_OUTPUT"
+
+
+      # ============================================================
+      # 3. EXTRACTION DE L'ASIN
+      # ============================================================
+      - name: Extract Amazon ASIN
+        id: asin
+        env:
+          AMAZON_URL: ${{ steps.search.outputs.AMAZON_URL }}
+        run: |
+          set -euo pipefail
+
+          echo "========================================"
+          echo "UNO SNAKE - ASIN EXTRACTION"
+          echo "========================================"
+
+          echo "URL:"
+          echo "$AMAZON_URL"
+
+          ASIN=$(echo "$AMAZON_URL" \
+            | grep -oE '/(dp|gp/product)/[A-Z0-9]{10}' \
+            | head -1 \
+            | grep -oE '[A-Z0-9]{10}$' || true)
+
+          if [ -z "$ASIN" ]; then
+            echo ""
+            echo "ERREUR : impossible d'extraire l'ASIN."
+            echo "URL reçue : $AMAZON_URL"
+            exit 1
+          fi
+
+          echo ""
+          echo "ASIN : $ASIN"
+
+          echo "ASIN=$ASIN" >> "$GITHUB_OUTPUT"
+
+
+      # ============================================================
+      # 4. CRÉER LE CANDIDAT DANS AIRTABLE
+      # ============================================================
+      - name: Create product candidate in Airtable
+        env:
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+
+          TREND: ${{ steps.trends.outputs.TREND }}
+          AMAZON_URL: ${{ steps.search.outputs.AMAZON_URL }}
+          ASIN: ${{ steps.asin.outputs.ASIN }}
+
+        run: |
+          set -euo pipefail
+
+          echo "========================================"
+          echo "UNO SNAKE - AIRTABLE"
+          echo "========================================"
+
+          PRODUCT_NAME="Candidat UnoSnake - ${TREND}"
+
+          PAYLOAD=$(jq -n \
+            --arg product "$PRODUCT_NAME" \
+            --arg amazon "$AMAZON_URL" \
+            '{
+              fields: {
+                "Product Name": $product,
+                "Amazon URL": $amazon,
+                "Status": "New"
+              }
+            }')
+
+          echo "PAYLOAD:"
+          echo "$PAYLOAD" | jq .
+
+          RESPONSE=$(curl -sS --fail-with-body \
+            -X POST \
+            -H "Authorization: Bearer ${AIRTABLE_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data "$PAYLOAD" \
+            "https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/tbl2RQvsmpBm3yAdW")
+
+          echo ""
+          echo "===== AIRTABLE RESPONSE ====="
+          echo "$RESPONSE" | jq .
+
+          RECORD_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+
+          if [ -z "$RECORD_ID" ]; then
+            echo "ERREUR : Airtable n'a pas créé le record."
             exit 1
           fi
 
           echo ""
           echo "========================================"
-          echo "PINTEREST SANDBOX : SUCCESS"
+          echo "UNO SNAKE DISCOVERY : SUCCESS"
           echo "========================================"
+          echo "Trend : $TREND"
+          echo "ASIN  : $ASIN"
+          echo "Record: $RECORD_ID"
