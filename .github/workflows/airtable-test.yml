@@ -1,144 +1,45 @@
-name: UnoSnake - Amazon Search Test
+name: UnoSnake - Pinterest Discovery Test
 
 on:
   workflow_dispatch:
 
 jobs:
-  test-amazon-search:
+  pinterest-test:
     runs-on: ubuntu-latest
 
     steps:
 
-      # ============================================================
-      # 1. AUTHENTIFICATION AMAZON CREATORS API
-      # ============================================================
-      - name: Authenticate with Amazon Creators API
-        id: amazon_auth
+      - name: Test Pinterest API
         env:
-          AMAZON_CREDENTIAL_ID: ${{ secrets.AMAZON_CREDENTIAL_ID }}
-          AMAZON_CREDENTIAL_SECRET: ${{ secrets.AMAZON_CREDENTIAL_SECRET }}
+          PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
 
           echo "========================================"
-          echo "UNO SNAKE - AMAZON AUTH"
+          echo "UNO SNAKE - PINTEREST API TEST"
           echo "========================================"
-
-          TOKEN_RESPONSE=$(curl -sS \
-            -X POST \
-            "https://api.amazon.co.uk/auth/o2/token" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"grant_type\": \"client_credentials\",
-              \"client_id\": \"${AMAZON_CREDENTIAL_ID}\",
-              \"client_secret\": \"${AMAZON_CREDENTIAL_SECRET}\",
-              \"scope\": \"creatorsapi::default\"
-            }")
-
-          echo "$TOKEN_RESPONSE" | jq 'del(.access_token)'
-
-          ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" \
-            | jq -r '.access_token // empty')
-
-          if [ -z "$ACCESS_TOKEN" ]; then
-            echo "ERREUR: impossible d'obtenir le token Amazon."
-            exit 1
-          fi
-
-          echo "Amazon OAuth: OK"
-
-          echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> "$GITHUB_OUTPUT"
-
-
-      # ============================================================
-      # 2. TEST SEARCHITEMS
-      # ============================================================
-      - name: Search products on Amazon
-        id: amazon_search
-        env:
-          ACCESS_TOKEN: ${{ steps.amazon_auth.outputs.ACCESS_TOKEN }}
-          AMAZON_PARTNER_TAG: ${{ secrets.AMAZON_PARTNER_TAG }}
-        run: |
-          set -euo pipefail
-
-          echo ""
-          echo "========================================"
-          echo "UNO SNAKE - AMAZON SEARCHITEMS"
-          echo "========================================"
-
-          KEYWORDS="scandinavian home decor"
-
-          echo "Recherche : $KEYWORDS"
-          echo "Marketplace : www.amazon.fr"
-          echo ""
 
           HTTP_STATUS=$(curl -sS \
-            -o amazon-response.json \
+            -o pinterest-response.json \
             -w "%{http_code}" \
-            -X POST \
-            "https://creatorsapi.amazon/catalog/v1/searchItems" \
-            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -H "x-marketplace: www.amazon.fr" \
-            -d "{
-              \"keywords\": \"${KEYWORDS}\",
-              \"marketplace\": \"www.amazon.fr\",
-              \"partnerTag\": \"${AMAZON_PARTNER_TAG}\",
-              \"resources\": [
-                \"images.primary.large\",
-                \"itemInfo.title\",
-                \"itemInfo.productInfo\",
-                \"offersV2.listings.price\"
-              ]
-            }")
+            -X GET \
+            "https://api.pinterest.com/v5/pins?page_size=5" \
+            -H "Authorization: Bearer ${PINTEREST_ACCESS_TOKEN}" \
+            -H "Content-Type: application/json")
 
           echo "HTTP STATUS: $HTTP_STATUS"
           echo ""
-          echo "===== AMAZON RESPONSE ====="
+          echo "===== PINTEREST RESPONSE ====="
 
-          cat amazon-response.json | jq .
-
-          echo ""
+          cat pinterest-response.json | jq .
 
           if [ "$HTTP_STATUS" != "200" ]; then
-            echo "========================================"
-            echo "SEARCHITEMS A ÉCHOUÉ"
-            echo "HTTP STATUS: $HTTP_STATUS"
-            echo "========================================"
-
-            exit 1
-          fi
-
-          echo "========================================"
-          echo "SEARCHITEMS : SUCCESS"
-          echo "========================================"
-
-          echo ""
-          echo "===== PRODUITS TROUVÉS ====="
-
-          jq -r '
-            .searchResult.items[]? |
-            [
-              (.asin // "N/A"),
-              (.itemInfo.title.displayValue // "N/A"),
-              (.detailPageURL // "N/A")
-            ] |
-            @tsv
-          ' amazon-response.json
-
-          ITEM_COUNT=$(jq '
-            (.searchResult.items // []) | length
-          ' amazon-response.json)
-
-          echo ""
-          echo "Nombre de produits trouvés : $ITEM_COUNT"
-
-          if [ "$ITEM_COUNT" -eq 0 ]; then
-            echo "ATTENTION : SearchItems fonctionne mais aucun produit n'a été retourné."
+            echo ""
+            echo "ERREUR: Pinterest API inaccessible."
             exit 1
           fi
 
           echo ""
           echo "========================================"
-          echo "UNO SNAKE - SEARCH TEST RÉUSSI"
+          echo "PINTEREST API : SUCCESS"
           echo "========================================"
