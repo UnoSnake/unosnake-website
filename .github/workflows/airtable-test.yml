@@ -2,35 +2,232 @@ name: UnoSnake - Process Selected Products
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 */6 * * *"
 
 jobs:
   process-products:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Read selected products from Airtable
+      - name: Read selected product from Airtable
+        id: airtable
         env:
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
         run: |
-          curl -s \
-            -H "Authorization: Bearer $AIRTABLE_TOKEN" \
-            "https://api.airtable.com/v0/app88FLN95xcB0QKF/tbl2RQvsmpBm3yAdW" \
-            > airtable.json
+          set -euo pipefail
 
-          echo "===== PRODUITS SELECTED ====="
+          echo "===== READING AIRTABLE ====="
 
-          jq -r '
-            .records[]
-            | select(.fields.Status == "Selected")
-            | {
-                id: .id,
-                product: .fields["Product Name"],
-                amazon_url: .fields["Amazon URL"],
-                category: .fields.Category,
-                style: .fields.Style
+          RESPONSE=$(curl -sS --fail-with-body \
+            -G \
+            -H "Authorization: Bearer ${AIRTABLE_TOKEN}" \
+            --data-urlencode "filterByFormula={Status}='Selected'" \
+            --data-urlencode "maxRecords=1" \
+            "https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Products")
+
+          echo "$RESPONSE" | jq .
+
+          RECORD_ID=$(echo "$RESPONSE" | jq -r '.records[0].id // empty')
+          AMAZON_URL=$(echo "$RESPONSE" | jq -r '.records[0].fields["Amazon URL"] // empty')
+
+          if [ -z "$RECORD_ID" ]; then
+            echo "ERROR: Aucun produit avec Status = Selected."
+            exit 1
+          fi
+
+          if [ -z "$AMAZON_URL" ]; then
+            echo "ERROR: Le produit n'a pas d'Amazon URL."
+            exit 1
+          fi
+
+          ASIN=$(echo "$AMAZON_URL" | grep -oE '/dp/[A-Z0-9]{10}' | head -1 | sed 's#^/dp/##')
+
+          if [ -z "$ASIN" ]; then
+            ASIN=$(echo "$AMAZON_URL" | grep -oE '/[A-Z0-9]{10}(/|\\?)' | head -1 | sed -E 's#^/##; s#[/?].*$##')
+          fi
+
+          if [ -z "$ASIN" ]; then
+            echo "ERROR: Impossible d'extraire l'ASIN depuis:"
+            echo "$AMAZON_URL"
+            exit 1
+          fi
+
+          echo "Record ID: $RECORD_ID"
+          echo "ASIN: $ASIN"
+
+          echo "RECORD_ID=$RECORD_ID" >> "$GITHUB_OUTPUT"
+          echo "ASIN=$ASIN" >> "$GITHUB_OUTPUT"
+
+      - name: Get Amazon access token
+        id: amazon-token
+        env:
+          AMAZON_CREDENTIAL_ID: ${{ secrets.AMAZON_CREDENTIAL_ID }}
+          AMAZON_CREDENTIAL_SECRET: ${{ secrets.AMAZON_CREDENTIAL_SECRET }}
+        run: |
+          set -euo pipefail
+
+          echo "===== AMAZON AUTHENTICATION ====="
+
+          TOKEN_RESPONSE=$(curl -sS --fail-with-body \
+            -X POST \
+            "https://api.amazon.co.uk/auth/o2/token" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"grant_type\": \"client_credentials\",
+              \"client_id\": \"${AMAZON_CREDENTIAL_ID}\",
+              \"client_secret\": \"${AMAZON_CREDENTIAL_SECRET}\",
+              \"scope\": \"creatorsapi::default\"
+            }")
+
+          ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token // empty')
+
+          if [ -z "$ACCESS_TOKEN" ]; then
+            echo "ERROR: Amazon n'a pas fourni d'access token."
+            echo "$TOKEN_RESPONSE" | jq .
+            exit 1
+          fi
+
+          echo "Amazon authentication: OK"
+
+          echo "ACCESS_TOKEN=$ACCESS_TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Get product data from Amazon
+        id: amazon
+        env:
+          ACCESS_TOKEN: ${{ steps.amazon-token.outputs.ACCESS_TOKEN }}
+          ASIN: ${{ steps.airtable.outputs.ASIN }}
+          AMAZON_PARTNER_TAG: ${{ secrets.AMAZON_PARTNER_TAG }}
+        run: |
+          set -euo pipefail
+
+          echo "===== AMAZON CREATORS API ====="
+          echo "ASIN: ${ASIN}"
+
+          RESPONSE=$(curl -sS --fail-with-body \
+            -X POST \
+            "https://creatorsapi.amazon/catalog/v1/getItems" \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -H "x-marketplace: www.amazon.fr" \
+            -d "{
+              \"itemIds\": [\"${ASIN}\"],
+              \"itemIdType\": \"ASIN\",
+              \"marketplace\": \"www.amazon.fr\",
+              \"partnerTag\": \"${AMAZON_PARTNER_TAG}\",
+              \"resources\": [
+                \"images.primary.large\",
+                \"images.primary.medium\",
+                \"itemInfo.title\",
+                \"itemInfo.features\",
+                \"offersV2.listings.price\"
+              ]
+            }")
+
+          echo "$RESPONSE" | jq .
+
+          ITEM=$(echo "$RESPONSE" | jq '.itemsResult.items[0] // empty')
+
+          if [ -z "$ITEM" ] || [ "$ITEM" = "null" ]; then
+            echo "ERROR: Amazon n'a retourné aucun produit."
+            echo "$RESPONSE" | jq .
+            exit 1
+          fi
+
+          PRODUCT_NAME=$(echo "$ITEM" | jq -r '.itemInfo.title.displayValue // empty')
+          AFFILIATE_URL=$(echo "$ITEM" | jq -r '.detailPageURL // empty')
+          IMAGE_URL=$(echo "$ITEM" | jq -r '.images.primary.large.url // .images.primary.medium.url // empty')
+          PRICE=$(echo "$ITEM" | jq -r '.offersV2.listings[0].price.money.amount // empty')
+
+          DESCRIPTION=$(echo "$ITEM" | jq -r '
+            (.itemInfo.features.displayValues // [])
+            | join(" ")
+          ')
+
+          if [ -z "$PRODUCT_NAME" ]; then
+            echo "ERROR: Amazon n'a pas retourné de titre."
+            exit 1
+          fi
+
+          if [ -z "$AFFILIATE_URL" ]; then
+            echo "ERROR: Amazon n'a pas retourné de lien affilié."
+            exit 1
+          fi
+
+          if [ -z "$IMAGE_URL" ]; then
+            echo "ERROR: Amazon n'a pas retourné d'image."
+            exit 1
+          fi
+
+          if [ -z "$DESCRIPTION" ]; then
+            DESCRIPTION="$PRODUCT_NAME"
+          fi
+
+          echo "===== AMAZON RESULT ====="
+          echo "Product: $PRODUCT_NAME"
+          echo "Affiliate URL: $AFFILIATE_URL"
+          echo "Image URL: $IMAGE_URL"
+          echo "Price: $PRICE"
+
+          {
+            echo "PRODUCT_NAME=$PRODUCT_NAME"
+            echo "AFFILIATE_URL=$AFFILIATE_URL"
+            echo "IMAGE_URL=$IMAGE_URL"
+            echo "PRICE=$PRICE"
+            echo "DESCRIPTION<<EOF"
+            echo "$DESCRIPTION"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Update Airtable with Amazon data
+        env:
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          RECORD_ID: ${{ steps.airtable.outputs.RECORD_ID }}
+          PRODUCT_NAME: ${{ steps.amazon.outputs.PRODUCT_NAME }}
+          AFFILIATE_URL: ${{ steps.amazon.outputs.AFFILIATE_URL }}
+          IMAGE_URL: ${{ steps.amazon.outputs.IMAGE_URL }}
+          PRICE: ${{ steps.amazon.outputs.PRICE }}
+          DESCRIPTION: ${{ steps.amazon.outputs.DESCRIPTION }}
+        run: |
+          set -euo pipefail
+
+          echo "===== UPDATING AIRTABLE ====="
+
+          jq -n \
+            --arg product "$PRODUCT_NAME" \
+            --arg affiliate "$AFFILIATE_URL" \
+            --arg image "$IMAGE_URL" \
+            --arg description "$DESCRIPTION" \
+            --arg price "$PRICE" \
+            '{
+              fields: {
+                "Product Name": $product,
+                "Affiliate URL": $affiliate,
+                "Image URL": $image,
+                "Description": $description
               }
-          ' airtable.json
+            }
+            + (
+              if $price != "" and ($price | tonumber? != null)
+              then {
+                fields: {
+                  "Price": ($price | tonumber)
+                }
+              }
+              else {}
+              end
+            )
+            ' > airtable-update.json
 
-          echo "=============================="
+          cat airtable-update.json | jq .
+
+          curl -sS --fail-with-body \
+            -X PATCH \
+            -H "Authorization: Bearer ${AIRTABLE_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data @airtable-update.json \
+            "https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Products/${RECORD_ID}" \
+            | jq .
+
+          echo "===== TEST SUCCESS ====="
+          echo "Amazon data successfully written to Airtable."
