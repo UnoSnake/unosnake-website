@@ -1,36 +1,24 @@
-name: UnoSnake Airtable Test
+name: UnoSnake - Airtable Products
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"
 
 jobs:
-  test-airtable:
+  read-airtable:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Test Airtable connection
+      - name: Read products from Airtable
         env:
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
-          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
         run: |
-          echo "Testing Airtable connection..."
+          curl -s \
+            -H "Authorization: Bearer $AIRTABLE_TOKEN" \
+            "https://api.airtable.com/v0/app88FLN95xcB0QKF/tbl2RQvsmpBm3yAdW" \
+            > products.json
 
-          RESPONSE=$(curl -sS \
-            -w "\n%{http_code}" \
-            -H "Authorization: Bearer ${AIRTABLE_TOKEN}" \
-            -H "Content-Type: application/json" \
-            "https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/Products")
-
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
-          BODY=$(echo "$RESPONSE" | sed '$d')
-
-          echo "HTTP status: ${HTTP_CODE}"
-
-          if [ "$HTTP_CODE" != "200" ]; then
-            echo "Airtable connection failed."
-            echo "$BODY"
-            exit 1
-          fi
-
-          echo "Airtable connection successful."
-          echo "$BODY"
+          echo "===== AIRTABLE RESPONSE ====="
+          cat products.json
+          echo "============================="
