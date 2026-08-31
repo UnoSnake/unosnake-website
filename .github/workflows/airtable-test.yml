@@ -1,4 +1,4 @@
-name: UnoSnake - Pinterest Discovery Test
+name: UnoSnake - Pinterest Sandbox Test
 
 on:
   workflow_dispatch:
@@ -8,38 +8,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-      - name: Test Pinterest API
+      - name: Test Pinterest Sandbox API
         env:
           PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
 
           echo "========================================"
-          echo "UNO SNAKE - PINTEREST API TEST"
+          echo "UNO SNAKE - PINTEREST SANDBOX TEST"
           echo "========================================"
 
           HTTP_STATUS=$(curl -sS \
             -o pinterest-response.json \
             -w "%{http_code}" \
             -X GET \
-            "https://api.pinterest.com/v5/pins?page_size=5" \
+            "https://api-sandbox.pinterest.com/v5/pins?page_size=5" \
             -H "Authorization: Bearer ${PINTEREST_ACCESS_TOKEN}" \
             -H "Content-Type: application/json")
 
           echo "HTTP STATUS: $HTTP_STATUS"
           echo ""
-          echo "===== PINTEREST RESPONSE ====="
+          echo "===== PINTEREST SANDBOX RESPONSE ====="
 
           cat pinterest-response.json | jq .
 
           if [ "$HTTP_STATUS" != "200" ]; then
             echo ""
-            echo "ERREUR: Pinterest API inaccessible."
+            echo "ERREUR: Pinterest Sandbox inaccessible."
             exit 1
           fi
 
           echo ""
           echo "========================================"
-          echo "PINTEREST API : SUCCESS"
+          echo "PINTEREST SANDBOX : SUCCESS"
           echo "========================================"
