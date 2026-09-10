@@ -1,0 +1,25 @@
+# Cloudflare Workers static assets — fichiers à NE PAS publier comme assets publics.
+# Syntaxe .gitignore. wrangler.jsonc pointe "directory": "." (racine du dépôt) :
+# sans ce fichier, le code source du backend serait servi en ligne.
+.git
+.github
+.gitignore
+.assetsignore
+.wrangler
+node_modules
+.venv
+venv
+__pycache__
+scripts
+tests
+*.py
+*.md
+*.pyc
+niches.json
+requirements.txt
+wrangler.jsonc
+worker.js
+.env
+.dev.vars
+*credentials*.csv
+search_history.json
