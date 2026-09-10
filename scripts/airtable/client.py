@@ -32,13 +32,20 @@ class AirtableClient:
             "Content-Type": "application/json",
         }
 
-    def list_records(self, fields: list[str] | None = None, page_size: int = 100) -> list[dict]:
+    def list_records(
+        self,
+        fields: list[str] | None = None,
+        page_size: int = 100,
+        filter_formula: str | None = None,
+    ) -> list[dict]:
         """
         Récupère tous les records (avec pagination automatique).
 
         Args:
             fields: Liste de champs à récupérer. None = tous.
             page_size: Taille de page (max 100).
+            filter_formula: Formule Airtable optionnelle (ex: "{Published}=TRUE()"),
+                appliquée côté serveur sur toutes les pages.
 
         Returns:
             Liste de records Airtable complets.
@@ -48,6 +55,8 @@ class AirtableClient:
 
         if fields:
             params["fields[]"] = fields
+        if filter_formula:
+            params["filterByFormula"] = filter_formula
 
         offset = None
 
