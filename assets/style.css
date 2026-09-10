@@ -480,7 +480,21 @@ a.product-card:hover .product-cta .arrow { transform: translateX(4px); }
    ============================================================ */
 .center-screen { min-height: 70vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: var(--space-5); }
 .center-lead { max-width: 44ch; }
-.empty-state { text-align: center; padding: var(--space-8) var(--space-5); color: var(--color-text-2); }
+
+/* État vide (aucun produit publié) : sobre, honnête, avec une suite de navigation */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-4);
+  padding: var(--space-8) var(--space-5); color: var(--color-text-2);
+  background: var(--color-surface); border: 1px dashed var(--color-border); border-radius: var(--radius-lg);
+}
+.empty-state .empty-title { font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 600; color: var(--color-text); }
+.empty-state p { max-width: 48ch; }
+.empty-state .hero-actions { margin-top: var(--space-2); }
+
+/* Produit sans photo : la marque en filigrane, jamais la photo d'un autre produit */
+.product-media--empty { display: flex; align-items: center; justify-content: center; background: var(--color-surface); }
+.product-media--empty .product-media-mark { width: 56px; height: 56px; opacity: .28; object-fit: contain; }
+a.product-card:hover .product-media--empty .product-media-mark { transform: none; }
 
 /* ============================================================
    REVEAL ANIMATIONS

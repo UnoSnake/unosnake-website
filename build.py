@@ -5,7 +5,7 @@ Produit toutes les pages HTML avec header/footer/SEO partagés.
 Aucun secret. Liens Amazon au format affilié officiel uniquement.
 Exécuter : python build.py  (écrit les .html à la racine du site)
 """
-import os, json, html as _html, hashlib, struct
+import os, re, json, html as _html, hashlib, struct
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SITE_URL = "https://unosnake-website.unosnakeshop.workers.dev"
@@ -18,16 +18,41 @@ MOBILE_BP = 860  # doit rester aligné avec le breakpoint de assets/style.css
 def affiliate(asin):
     return f"https://www.amazon.fr/dp/{asin}/ref=nosim?tag={PARTNER_TAG}"
 
-# Produit réel validé au pilote Phase 13 + placeholders éditoriaux honnêtes
-# (pas de faux prix : price=None → non affiché ; sans ASIN → carte non cliquable "Sélection à venir")
-PRODUCTS = [
-    {"asin":"B09FQ9RL1X","name":"Étagère flottante en bois massif","cat":"Rangement","style":"Warm Minimalism","img":"prod-etagere","price":None,"real":True},
-    {"asin":None,"name":"Lampe de table bois et lin","cat":"Éclairage","style":"Scandinave","img":"prod-lampe","price":None,"real":False},
-    {"asin":None,"name":"Vase en céramique mate","cat":"Objets déco","style":"Japandi","img":"prod-vase","price":None,"real":False},
-    {"asin":None,"name":"Panier en rotin tressé","cat":"Rangement","style":"Bohème","img":"prod-panier","price":None,"real":False},
-    {"asin":None,"name":"Miroir rond en bois clair","cat":"Décoration","style":"Scandinave","img":"prod-miroir","price":None,"real":False},
-    {"asin":None,"name":"Coussin en lin lavé","cat":"Textiles","style":"Warm Minimalism","img":"prod-coussin","price":None,"real":False},
-]
+# Produits : source unique = products.json (généré depuis Airtable, Published = true, par
+# scripts/site/export_products.py). Aucun produit codé en dur : si le fichier est vide ou absent,
+# le site affiche un état vide propre. Aucune donnée sensible n'est lue ici.
+PRODUCTS_FILE = os.path.join(HERE, "products.json")
+
+# Libellés d'affichage des styles (valeurs Airtable en anglais → site en français)
+STYLE_LABELS = {
+    "Scandinavian": "Scandinave", "Japandi": "Japandi", "Warm Minimalism": "Warm Minimalism",
+    "Bohemian": "Bohème", "Natural": "Naturel", "Modern": "Moderne",
+}
+
+def load_products(path=PRODUCTS_FILE):
+    """Lit products.json et ne garde que des entrées exploitables (nom + ASIN valide)."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return []
+    out = []
+    for p in data.get("products", []) if isinstance(data, dict) else []:
+        asin = str(p.get("asin", "")).strip()
+        name = " ".join(str(p.get("name", "")).split())
+        if not name or not re.fullmatch(r"[A-Z0-9]{10}", asin):
+            continue
+        image = str(p.get("image_url", "")).strip()
+        style = str(p.get("style", "")).strip()
+        out.append({
+            "asin": asin, "name": name,
+            "cat": str(p.get("category", "")).strip(),
+            "style": STYLE_LABELS.get(style, style),
+            "image_url": image if image.lower().startswith("https://") else "",
+        })
+    return out
+
+PRODUCTS = load_products()
 
 STYLES = [
     {"slug":"scandinave","name":"Scandinave","img":"style-scandinave",
@@ -246,31 +271,42 @@ def picture(name, alt, lazy=True, priority=False, decorative=False):
     return (f'<picture><source type="image/webp" srcset="{asset_url(f"assets/img/{name}.webp")}">'
             f'<img src="{asset_url(jpg)}"{dims} alt="{a}" {loading}></picture>')
 
+def product_media(p, lazy=True):
+    """Visuel produit : photo distante (https uniquement) ou état sans photo, jamais une image d'un autre produit."""
+    badge = f'<span class="badge">{esc(p["style"])}</span>' if p.get("style") else ""
+    if p.get("image_url"):
+        loading = 'loading="lazy" decoding="async"' if lazy else 'decoding="async"'
+        img = f'<img src="{esc(p["image_url"])}" alt="" {loading} referrerpolicy="no-referrer">'
+        return f'<div class="product-media">{img}{badge}</div>'
+    mark = asset_url("assets/logo-mark-128.png")
+    return f'<div class="product-media product-media--empty"><img class="product-media-mark" src="{mark}" width="56" height="56" alt="" loading="lazy" decoding="async">{badge}</div>'
+
 def product_card(p, lazy=True, hlevel=3):
+    """Carte produit : lien affilié officiel, rel sponsored, nouvelle fenêtre annoncée aux lecteurs d'écran."""
     h = f"h{hlevel}"
-    name = esc(p["name"])
-    badge = f'<span class="badge">{esc(p["style"])}</span>'
-    price = f'<span class="product-price">{esc(p["price"])}</span>' if p.get("price") else '<span class="product-price muted">Sélection</span>'
-    media = f'<div class="product-media">{picture(p["img"], p["name"], lazy=lazy, decorative=True)}{badge}</div>'
-    if p.get("asin"):
-        cta = f'<span class="product-cta">Voir sur Amazon{NEW_WINDOW} {ARROW}</span>'
-        return f"""<a class="product-card reveal" href="{affiliate(p["asin"])}" rel="sponsored nofollow noopener" target="_blank">
-  {media}
+    cat = f'<span class="product-cat">{esc(p["cat"])}</span>' if p.get("cat") else ""
+    return f"""<a class="product-card reveal" href="{affiliate(p["asin"])}" rel="sponsored nofollow noopener" target="_blank">
+  {product_media(p, lazy=lazy)}
   <div class="product-body">
-    <span class="product-cat">{esc(p["cat"])}</span>
-    <{h} class="product-name">{name}</{h}>
-    <div class="product-meta">{price}<span class="product-cta">Voir sur Amazon{NEW_WINDOW} {ARROW}</span></div>
+    {cat}
+    <{h} class="product-name">{esc(p["name"])}</{h}>
+    <div class="product-meta"><span class="product-price muted">Sélection</span><span class="product-cta">Voir sur Amazon{NEW_WINDOW} {ARROW}</span></div>
   </div>
 </a>"""
-    # Pas encore de produit réel derrière cette carte : aucun lien trompeur.
-    return f"""<article class="product-card is-placeholder reveal">
-  {media}
-  <div class="product-body">
-    <span class="product-cat">{esc(p["cat"])}</span>
-    <{h} class="product-name">{name}</{h}>
-    <div class="product-meta">{price}<span class="product-cta">Sélection à venir</span></div>
+
+def products_grid(products, lazy_from=0, hlevel=3):
+    """Grille de cartes, ou état vide premium (aucun faux produit, aucun lien trompeur)."""
+    if not products:
+        return f"""<div class="empty-state reveal">
+  <p class="empty-title">Nos premières sélections arrivent.</p>
+  <p>Chaque pièce est choisie à la main pour sa justesse. En attendant, explorez les univers et le Journal.</p>
+  <div class="hero-actions hero-actions--center">
+    <a class="btn btn-secondary" href="/styles.html">Explorer les styles</a>
+    <a class="btn btn-ghost" href="/journal.html">Lire le Journal {ARROW}</a>
   </div>
-</article>"""
+</div>"""
+    cards = "".join(product_card(p, lazy=(i >= lazy_from), hlevel=hlevel) for i, p in enumerate(products))
+    return f'<div class="grid-products">{cards}</div>'
 
 def style_card(s, hlevel=3):
     h = f"h{hlevel}"
@@ -311,7 +347,8 @@ def write(path, content):
 # ----------------------------------------------------------------
 def build_index():
     # Sur toutes les largeurs, la grille produits est sous le hero : lazy partout.
-    prods = "".join(product_card(p) for p in PRODUCTS[:4])
+    prods = products_grid(PRODUCTS[:4])
+    more = f'<div class="section-more reveal"><a class="btn btn-ghost" href="/inspirations.html">Voir toutes les inspirations {ARROW}</a></div>' if PRODUCTS else ""
     styles = "".join(style_card(s) for s in STYLES)
     cats = "".join(f'<a class="cat-card reveal" href="/inspirations.html">{ICONS[c["icon"]]}<span>{c["name"]}</span></a>' for c in CATEGORIES)
     arts = "".join(article_card(a) for a in ARTICLES)
@@ -358,8 +395,8 @@ def build_index():
         <h2 id="sel-h">La sélection du moment</h2>
         <p>Des pièces repérées pour leur justesse — matières naturelles, formes sobres, présence discrète.</p>
       </div>
-      <div class="grid-products">{prods}</div>
-      <div class="section-more reveal"><a class="btn btn-ghost" href="/inspirations.html">Voir toutes les inspirations {ARROW}</a></div>
+      {prods}
+      {more}
     </div>
   </section>
 
@@ -445,7 +482,7 @@ def build_styles():
 
 def build_inspirations():
     # Les deux premières cartes sont visibles au chargement (desktop) : chargement immédiat.
-    prods = "".join(product_card(p, lazy=(i > 1), hlevel=2) for i, p in enumerate(PRODUCTS))
+    prods = products_grid(PRODUCTS, lazy_from=2, hlevel=2)
     page = head("Inspirations déco — Sélections UnoSnake",
                 "La galerie des sélections UnoSnake : mobilier, éclairage, rangement et décoration choisis autour des styles scandinave, japandi et minimalisme chaleureux.",
                 "inspirations.html")
@@ -460,7 +497,7 @@ def build_inspirations():
   </section>
   <section class="section page-body" aria-label="Sélections">
     <div class="container">
-      <div class="grid-products">{prods}</div>
+      {prods}
     </div>
   </section>
   <section class="section-sm"><div class="container">{DISCLOSURE}</div></section>
@@ -491,7 +528,13 @@ def build_journal():
 
 def build_article(a):
     bc = f'<a href="/">Accueil</a><span class="sep" aria-hidden="true">/</span><a href="/journal.html">Journal</a><span class="sep" aria-hidden="true">/</span><span aria-current="page">{esc(a["tag"])}</span>'
-    reco = "".join(product_card(p) for p in PRODUCTS[:3])
+    # "Sélection associée" seulement s'il existe des produits publiés (pas de bloc vide sur un article)
+    reco = ""
+    if PRODUCTS:
+        reco = f"""<aside class="container section-gap" aria-labelledby="reco-h">
+    <div class="section-head reveal"><span class="eyebrow">Sélection associée</span><h2 id="reco-h">Des pièces qui vont avec</h2></div>
+    <div class="grid-3">{"".join(product_card(p) for p in PRODUCTS[:3])}</div>
+  </aside>"""
     related = "".join(article_card(x) for x in ARTICLES if x["slug"] != a["slug"])
     hero_name = a.get("hero_img", a["img"])
     hero_cls = "article-hero article-hero--wide" if a.get("hero_img") else "article-hero"
@@ -556,10 +599,7 @@ def build_article(a):
       <div class="prose">{body}</div>
     </div>
   </article>
-  <aside class="container section-gap" aria-labelledby="reco-h">
-    <div class="section-head reveal"><span class="eyebrow">Sélection associée</span><h2 id="reco-h">Des pièces qui vont avec</h2></div>
-    <div class="grid-3">{reco}</div>
-  </aside>
+  {reco}
   <div class="container-narrow container section-gap-sm">{DISCLOSURE}</div>
   <aside class="container section-gap" aria-labelledby="rel-h">
     <div class="section-head reveal"><span class="eyebrow">À lire ensuite</span><h2 id="rel-h">Articles similaires</h2></div>
