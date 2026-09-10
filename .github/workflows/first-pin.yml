@@ -1,0 +1,95 @@
+name: UnoSnake — First Pin
+
+# ────────────────────────────────────────────
+# MANUAL ONLY — the ultra-controlled first real Pin.
+# Requires confirm_production == "PUBLISH" AND Launch Gate READY.
+# Publishes EXACTLY 1 Pin (FIRST_PIN_MODE=true).
+# ────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_production:
+        description: "Type exactly 'PUBLISH' to authorize the first real Pin"
+        required: true
+        type: string
+
+concurrency:
+  group: unosnake-first-pin
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # ──────────────────────────────────
+  # JOB 1 : Full test suite (gate)
+  # ──────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.confirm_production == 'PUBLISH' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Run all tests
+        run: |
+          python tests/run_tests.py
+          python tests/test_pinterest.py
+          python tests/test_content.py
+          python tests/test_scheduler.py
+          python tests/test_production_hardening.py
+          python tests/test_live_dry_run.py
+          python tests/test_real_data_pilot.py
+          python tests/test_launch_gate.py
+
+  # ──────────────────────────────────
+  # JOB 2 : First Pin publication
+  # ──────────────────────────────────
+  first-pin:
+    runs-on: ubuntu-latest
+    needs: test
+    if: ${{ github.event.inputs.confirm_production == 'PUBLISH' }}
+    env:
+      SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+      AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+      AMAZON_PARTNER_TAG: ${{ secrets.AMAZON_PARTNER_TAG }}
+      PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+
+      # Production activation — explicit, via repo vars
+      PINTEREST_ENABLED: ${{ vars.PINTEREST_ENABLED || 'false' }}
+      PINTEREST_SANDBOX: ${{ vars.PINTEREST_SANDBOX || 'true' }}
+      PINTEREST_BOARD_ID: ${{ vars.PINTEREST_BOARD_ID || '' }}
+      TEST_MODE: ${{ vars.TEST_MODE || 'true' }}
+
+      # First Pin safety
+      FIRST_PIN_MODE: "true"
+      LIVE_PILOT: "false"
+      MAX_PUBLISH_PER_RUN: "1"
+      MAX_ACCEPTED_PER_RUN: "10"
+      MIN_PRODUCT_SCORE: "65"
+      MAX_NICHES_PER_RUN: "3"
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+
+      - name: Confirm authorization
+        run: |
+          if [ "${{ github.event.inputs.confirm_production }}" != "PUBLISH" ]; then
+            echo "FATAL: confirmation must be exactly 'PUBLISH'"
+            exit 1
+          fi
+          echo "✅ Confirmation received"
+
+      - name: Launch Gate check (must be READY)
+        run: python -m scripts.pinterest.production_check
+
+      - name: Publish first Pin (FIRST_PIN_MODE, max 1)
+        run: python -m scripts.scheduler.autopilot

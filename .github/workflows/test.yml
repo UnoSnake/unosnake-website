@@ -1,0 +1,50 @@
+name: UnoSnake — Tests
+
+on:
+  push:
+    paths:
+      - "scripts/**"
+      - "tests/**"
+      - "niches.json"
+      - "requirements.txt"
+  pull_request:
+    paths:
+      - "scripts/**"
+      - "tests/**"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+
+      - name: Run main tests
+        run: python tests/run_tests.py
+
+      - name: Run Pinterest tests
+        run: python tests/test_pinterest.py
+
+      - name: Run Content tests
+        run: python tests/test_content.py
+
+      - name: Run Scheduler tests
+        run: python tests/test_scheduler.py
+
+      - name: Run Production Hardening tests
+        run: python tests/test_production_hardening.py
+
+      - name: Run Live Dry Run tests
+        run: python tests/test_live_dry_run.py
+
+      - name: Run Real Data Pilot tests
+        run: python tests/test_real_data_pilot.py
+
+      - name: Run Launch Gate tests
+        run: python tests/test_launch_gate.py

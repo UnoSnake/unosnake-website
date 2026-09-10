@@ -1,0 +1,65 @@
+name: UnoSnake — Publish Pipeline
+
+# DISABLED until Pinterest Trial access is approved.
+# Uncomment the schedule when ready for production.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (no Pinterest publish)"
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+  # schedule:
+  #   - cron: "30 7,11,15,19 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unosnake-publish
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python tests/run_tests.py
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: test
+    env:
+      AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+      AMAZON_PARTNER_TAG: ${{ secrets.AMAZON_PARTNER_TAG }}
+      PINTEREST_ACCESS_TOKEN: ${{ secrets.PINTEREST_ACCESS_TOKEN }}
+      PINTEREST_ENABLED: "false"  # Set to "true" after Pinterest approval
+      PINTEREST_SANDBOX: "true"
+      TEST_MODE: "true"
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+
+      - name: Publish to Pinterest
+        run: |
+          echo "Pinterest publish pipeline"
+          echo "PINTEREST_ENABLED=$PINTEREST_ENABLED"
+          echo "DRY_RUN=${{ github.event.inputs.dry_run }}"
+          echo ""
+          echo "⚠️ Pinterest Trial access is pending."
+          echo "When approved, set PINTEREST_ENABLED=true and PINTEREST_SANDBOX=false."

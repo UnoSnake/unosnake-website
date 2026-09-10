@@ -1,0 +1,105 @@
+name: UnoSnake — Discovery Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (no Airtable writes)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+  # Scheduler : toutes les 6 heures (4x/jour)
+  # Décommenté quand le pipeline est validé en production.
+  # schedule:
+  #   - cron: "0 6,10,14,18 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unosnake-discover
+  cancel-in-progress: false
+
+jobs:
+  # ────────────────────────────────────────────
+  # JOB 1 : Tests
+  # ────────────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: python tests/run_tests.py
+
+  # ────────────────────────────────────────────
+  # JOB 1b : Integration test (Airtable dedup)
+  # ────────────────────────────────────────────
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: test
+    env:
+      AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Airtable integration test (read-only)
+        run: python tests/test_airtable_integration.py
+
+  # ────────────────────────────────────────────
+  # JOB 2 : Discovery
+  # ────────────────────────────────────────────
+  discover:
+    runs-on: ubuntu-latest
+    needs: [test, integration-test]
+    env:
+      SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+      AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+      AMAZON_PARTNER_TAG: ${{ secrets.AMAZON_PARTNER_TAG }}
+      TEST_MODE: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Discovery Engine
+        run: |
+          DRY_RUN_FLAG=""
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            DRY_RUN_FLAG="--dry-run"
+          fi
+
+          python -m scripts.discovery.engine --test $DRY_RUN_FLAG
