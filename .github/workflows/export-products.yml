@@ -1,0 +1,63 @@
+name: UnoSnake — Export Products (site)
+
+# Airtable (Published = true) → products.json (public, non sensible) → build.py → commit.
+# Le token Airtable ne quitte jamais le runner : products.json ne contient que
+# name / asin / category / style / image_url / affiliate_url.
+# Le push par GITHUB_TOKEN ne redéclenche pas d'autre workflow (protection GitHub) ;
+# Cloudflare redéploie le site à partir du commit.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 5 * * *"   # tous les jours à 05:15 UTC
+
+permissions:
+  contents: write   # nécessaire pour committer products.json et les pages régénérées
+
+concurrency:
+  group: unosnake-export-products
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    env:
+      AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+      AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+      AMAZON_PARTNER_TAG: ${{ secrets.AMAZON_PARTNER_TAG }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+
+      - name: Run site export tests
+        run: python tests/test_export_products.py
+
+      - name: Export published products from Airtable
+        run: python scripts/site/export_products.py
+
+      - name: Rebuild site
+        run: python build.py
+
+      - name: Verify no secret in generated files
+        run: |
+          set -e
+          for f in products.json *.html; do
+            if [ -n "$AIRTABLE_TOKEN" ] && grep -qF -- "$AIRTABLE_TOKEN" "$f"; then echo "::error::secret leaked in $f"; exit 1; fi
+          done
+          echo "OK — no secret in generated files"
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add products.json *.html sitemap.xml robots.txt manifest.webmanifest
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          COUNT=$(python -c "import json; print(len(json.load(open('products.json'))['products']))")
+          git commit -m "chore(site): refresh products.json ($COUNT published) and regenerate pages"
+          git push

@@ -79,7 +79,16 @@ scripts/amazon/              Extraction ASIN + URL affiliée officielle
 scripts/airtable/            CRUD + dédup + machine à états (New→Selected→Published)
 scripts/pinterest/           Client API v5 + publisher + Launch Gate
 scripts/scheduler/           Autopilot + data quality
+scripts/site/                Pont vers le site : export_products.py (Airtable → products.json), fetch_photos.py
 ```
+
+### Produits affichés sur le site (Airtable → `products.json`)
+Le site n'embarque aucun produit codé en dur. `scripts/site/export_products.py` lit la table
+Products (filtre `Published = true`, token côté GitHub Actions uniquement) et écrit `products.json`,
+un fichier **public et non sensible** : `name, asin, category, style, image_url, affiliate_url`, rien d'autre.
+`build.py` génère les cartes à partir de ce fichier ; s'il est vide, le site affiche un état vide propre.
+Le workflow `export-products.yml` (manuel + quotidien) régénère `products.json` et les pages, puis
+committe le résultat — Cloudflare redéploie automatiquement.
 
 ### Flux
 ```
@@ -98,7 +107,8 @@ Safe-by-default : 12 checks critiques, un seul échec ⇒ BLOCKED. Aucun token e
 
 ### Workflows GitHub Actions
 ```
-.github/workflows/test.yml              CI — 8 suites de tests
+.github/workflows/test.yml              CI — 9 suites de tests (push, PR, manuel)
+.github/workflows/export-products.yml   Airtable → products.json → site (manuel + cron quotidien)
 .github/workflows/discover.yml          Découverte (manuel/cron)
 .github/workflows/autopilot.yml         Pipeline complet (cron 4×/jour)
 .github/workflows/live-pilot.yml        Pilote données réelles (manuel)
@@ -119,7 +129,8 @@ python tests/test_production_hardening.py # 36
 python tests/test_live_dry_run.py         # 20
 python tests/test_real_data_pilot.py      # 20
 python tests/test_launch_gate.py          # 22
-# Total : 308 tests
+python tests/test_export_products.py      # 19 (export Airtable → products.json + build.py)
+# Total : 327 tests
 ```
 
 ---
