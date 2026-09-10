@@ -1,0 +1,1 @@
+# UnoSnake — Scoring module

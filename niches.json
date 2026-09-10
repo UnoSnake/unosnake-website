@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "description": "Pool de niches UnoSnake pour la découverte produit Amazon.fr",
+  "niches": [
+    {
+      "query": "décoration scandinave maison",
+      "style": "Scandinavian",
+      "category": "Décoration"
+    },
+    {
+      "query": "japandi décoration intérieur",
+      "style": "Japandi",
+      "category": "Décoration"
+    },
+    {
+      "query": "décoration minimaliste maison",
+      "style": "Warm Minimalism",
+      "category": "Décoration"
+    },
+    {
+      "query": "vase céramique décoration",
+      "style": "Warm Minimalism",
+      "category": "Objets déco"
+    },
+    {
+      "query": "lampe design salon scandinave",
+      "style": "Scandinavian",
+      "category": "Éclairage"
+    },
+    {
+      "query": "lampe de table décoration",
+      "style": "Modern",
+      "category": "Éclairage"
+    },
+    {
+      "query": "étagère murale bois",
+      "style": "Scandinavian",
+      "category": "Rangement"
+    },
+    {
+      "query": "étagère flottante décoration",
+      "style": "Warm Minimalism",
+      "category": "Rangement"
+    },
+    {
+      "query": "rangement maison esthétique",
+      "style": "Modern",
+      "category": "Rangement"
+    },
+    {
+      "query": "décoration bohème salon",
+      "style": "Bohemian",
+      "category": "Décoration"
+    },
+    {
+      "query": "tapis salon scandinave",
+      "style": "Scandinavian",
+      "category": "Textile"
+    },
+    {
+      "query": "coussin décoration canapé",
+      "style": "Bohemian",
+      "category": "Textile"
+    },
+    {
+      "query": "miroir décoration entrée",
+      "style": "Modern",
+      "category": "Accessoires"
+    },
+    {
+      "query": "bougie parfumée décoration",
+      "style": "Warm Minimalism",
+      "category": "Accessoires"
+    },
+    {
+      "query": "cadre photo décoration murale",
+      "style": "Modern",
+      "category": "Décoration"
+    },
+    {
+      "query": "panier rotin rangement",
+      "style": "Bohemian",
+      "category": "Rangement"
+    },
+    {
+      "query": "décoration chambre naturelle",
+      "style": "Natural",
+      "category": "Décoration"
+    },
+    {
+      "query": "accessoire cuisine bois",
+      "style": "Scandinavian",
+      "category": "Accessoires"
+    },
+    {
+      "query": "organisateur bureau esthétique",
+      "style": "Warm Minimalism",
+      "category": "Rangement"
+    },
+    {
+      "query": "décoration salle de bain",
+      "style": "Modern",
+      "category": "Décoration"
+    },
+    {
+      "query": "plante artificielle décoration",
+      "style": "Natural",
+      "category": "Objets déco"
+    }
+  ]
+}

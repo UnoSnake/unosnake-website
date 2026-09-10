@@ -1,0 +1,1 @@
+# UnoSnake — Amazon module
