@@ -8,11 +8,15 @@
 <link rel="canonical" href="https://unosnake-website.unosnakeshop.workers.dev/styles.html">
 <meta name="theme-color" content="#F2EBE0">
 <meta property="og:type" content="website">
+<meta property="og:locale" content="fr_FR">
 <meta property="og:site_name" content="UnoSnake">
 <meta property="og:title" content="Styles — Scandinave, Japandi, Minimalisme chaleureux, Bohème | UnoSnake">
 <meta property="og:description" content="Découvrez les univers UnoSnake : scandinave, japandi, minimalisme chaleureux et bohème. Palettes, philosophie et sélections pour chaque style.">
 <meta property="og:url" content="https://unosnake-website.unosnakeshop.workers.dev/styles.html">
 <meta property="og:image" content="https://unosnake-website.unosnakeshop.workers.dev/assets/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="UnoSnake — inspirations déco scandinave, japandi et minimalisme chaleureux">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Styles — Scandinave, Japandi, Minimalisme chaleureux, Bohème | UnoSnake">
 <meta name="twitter:description" content="Découvrez les univers UnoSnake : scandinave, japandi, minimalisme chaleureux et bohème. Palettes, philosophie et sélections pour chaque style.">
@@ -20,21 +24,24 @@
 <link rel="icon" href="/assets/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/assets/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/style.css?v=6b290412">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap">
+<noscript><style>.reveal{opacity:1;transform:none}</style></noscript>
 </head>
-<body><a class="skip-link" href="#main" style="position:absolute;left:-9999px">Aller au contenu</a>
+<body><a class="skip-link" href="#main">Aller au contenu</a>
 <header class="site-header">
   <div class="container header-inner">
     <a class="brand" href="/" aria-label="UnoSnake — accueil">
-      <img class="brand-logo" src="/assets/logo-mark.png" width="42" height="42" alt="Logo UnoSnake">
+      <img class="brand-logo" src="/assets/logo-mark-128.png?v=4fa247ca" width="42" height="42" alt="">
       <span class="brand-name">UnoSnake</span>
     </a>
     <nav class="nav-desktop" aria-label="Navigation principale"><a href="/inspirations.html">Inspirations</a><a href="/styles.html" aria-current="page">Styles</a><a href="/journal.html">Journal</a><a href="/about.html">À propos</a></nav>
     <div class="header-actions">
       <a class="btn btn-secondary nav-desktop-cta" href="/inspirations.html">Découvrir</a>
-      <button class="burger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-nav">
+      <button class="burger" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-nav">
         <span></span><span></span><span></span>
       </button>
     </div>
@@ -44,63 +51,55 @@
   <a href="/inspirations.html">Inspirations</a><a href="/styles.html">Styles</a><a href="/journal.html">Journal</a><a href="/about.html">À propos</a>
   <a class="btn btn-primary" href="/inspirations.html">Découvrir les inspirations</a>
 </nav><main id="main">
-  <section class="section" style="padding-bottom:var(--space-6)">
-    <div class="container section-head reveal">
+  <section class="section page-head">
+    <div class="container section-head">
       <span class="eyebrow">Univers UnoSnake</span>
       <h1>Explorer par style</h1>
       <p>Quatre sensibilités qui partagent la même idée : des intérieurs naturels, calmes et durables.</p>
     </div>
   </section>
-  <section class="section" id="scandinave" style="">
-      <div class="container grid-2" style="align-items:center;gap:var(--space-8)">
-        <div class="style-detail-media reveal" >
-          <div class="style-card" style="aspect-ratio:4/3;cursor:default"><img src="/assets/img/style-scandinave.jpg" srcset="/assets/img/style-scandinave.webp" alt="Ambiance Scandinave" loading="lazy" decoding="async" class=""></div>
-        </div>
-        <div class="reveal">
+  <section class="section" id="scandinave" aria-labelledby="scandinave-h">
+      <div class="container style-detail">
+        <figure class="style-figure reveal"><picture><source type="image/webp" srcset="/assets/img/style-scandinave.webp?v=c9ceee68"><img src="/assets/img/style-scandinave.jpg?v=77a7692f" width="900" height="600" alt="Ambiance Scandinave" decoding="async"></picture></figure>
+        <div class="style-copy reveal">
           <span class="eyebrow">Univers</span>
-          <h2 style="margin:var(--space-3) 0">Scandinave</h2>
-          <p class="lead" style="font-style:italic;margin-bottom:var(--space-4)">Des lignes simples, du bois clair et une chaleur naturelle.</p>
-          <p class="muted">Le style scandinave cherche la lumière et la simplicité : des matières claires, des formes douces et une fonctionnalité tranquille qui rend chaque pièce accueillante.</p>
-          <div style="margin-top:var(--space-5)"><a class="btn btn-ghost" href="/inspirations.html">Voir les sélections <svg class="arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4"/></svg></a></div>
+          <h2 id="scandinave-h">Scandinave</h2>
+          <p class="lead italic">Des lignes simples, du bois clair et une chaleur naturelle.</p>
+          <p class="text-2">Le style scandinave cherche la lumière et la simplicité : des matières claires, des formes douces et une fonctionnalité tranquille qui rend chaque pièce accueillante.</p>
+          <div class="section-more"><a class="btn btn-ghost" href="/inspirations.html">Voir les sélections <svg class="arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4"/></svg></a></div>
         </div>
       </div>
-    </section><section class="section" id="japandi" style="background:var(--color-surface)">
-      <div class="container grid-2" style="align-items:center;gap:var(--space-8)">
-        <div class="style-detail-media reveal" style="order:-1">
-          <div class="style-card" style="aspect-ratio:4/3;cursor:default"><img src="/assets/img/style-japandi.jpg" srcset="/assets/img/style-japandi.webp" alt="Ambiance Japandi" loading="lazy" decoding="async" class=""></div>
-        </div>
-        <div class="reveal">
+    </section><section class="section section-alt" id="japandi" aria-labelledby="japandi-h">
+      <div class="container style-detail">
+        <figure class="style-figure reveal is-flipped"><picture><source type="image/webp" srcset="/assets/img/style-japandi.webp?v=698e1040"><img src="/assets/img/style-japandi.jpg?v=d348ff30" width="900" height="600" alt="Ambiance Japandi" loading="lazy" decoding="async"></picture></figure>
+        <div class="style-copy reveal">
           <span class="eyebrow">Univers</span>
-          <h2 style="margin:var(--space-3) 0">Japandi</h2>
-          <p class="lead" style="font-style:italic;margin-bottom:var(--space-4)">Le calme, l'équilibre et la beauté de l'essentiel.</p>
-          <p class="muted">Le japandi réunit la sobriété japonaise et la chaleur nordique : des palettes apaisées, des matériaux naturels et une recherche d'équilibre dans chaque détail.</p>
-          <div style="margin-top:var(--space-5)"><a class="btn btn-ghost" href="/inspirations.html">Voir les sélections <svg class="arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4"/></svg></a></div>
+          <h2 id="japandi-h">Japandi</h2>
+          <p class="lead italic">Le calme, l&#x27;équilibre et la beauté de l&#x27;essentiel.</p>
+          <p class="text-2">Le japandi réunit la sobriété japonaise et la chaleur nordique : des palettes apaisées, des matériaux naturels et une recherche d&#x27;équilibre dans chaque détail.</p>
+          <div class="section-more"><a class="btn btn-ghost" href="/inspirations.html">Voir les sélections <svg class="arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4"/></svg></a></div>
         </div>
       </div>
-    </section><section class="section" id="warm-minimalism" style="">
-      <div class="container grid-2" style="align-items:center;gap:var(--space-8)">
-        <div class="style-detail-media reveal" >
-          <div class="style-card" style="aspect-ratio:4/3;cursor:default"><img src="/assets/img/style-warm.jpg" srcset="/assets/img/style-warm.webp" alt="Ambiance Warm Minimalism" loading="lazy" decoding="async" class=""></div>
-        </div>
-        <div class="reveal">
+    </section><section class="section" id="warm-minimalism" aria-labelledby="warm-minimalism-h">
+      <div class="container style-detail">
+        <figure class="style-figure reveal"><picture><source type="image/webp" srcset="/assets/img/style-warm.webp?v=35b642df"><img src="/assets/img/style-warm.jpg?v=fe1dc86e" width="900" height="600" alt="Ambiance Warm Minimalism" loading="lazy" decoding="async"></picture></figure>
+        <div class="style-copy reveal">
           <span class="eyebrow">Univers</span>
-          <h2 style="margin:var(--space-3) 0">Warm Minimalism</h2>
-          <p class="lead" style="font-style:italic;margin-bottom:var(--space-4)">Moins, mais mieux — dans un intérieur qui reste vivant.</p>
-          <p class="muted">Le minimalisme chaleureux garde l'essentiel sans jamais devenir froid : des tons neutres, des textures naturelles et des objets choisis pour durer.</p>
-          <div style="margin-top:var(--space-5)"><a class="btn btn-ghost" href="/inspirations.html">Voir les sélections <svg class="arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4"/></svg></a></div>
+          <h2 id="warm-minimalism-h">Warm Minimalism</h2>
+          <p class="lead italic">Moins, mais mieux — dans un intérieur qui reste vivant.</p>
+          <p class="text-2">Le minimalisme chaleureux garde l&#x27;essentiel sans jamais devenir froid : des tons neutres, des textures naturelles et des objets choisis pour durer.</p>
+          <div class="section-more"><a class="btn btn-ghost" href="/inspirations.html">Voir les sélections <svg class="arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4"/></svg></a></div>
         </div>
       </div>
-    </section><section class="section" id="boheme" style="background:var(--color-surface)">
-      <div class="container grid-2" style="align-items:center;gap:var(--space-8)">
-        <div class="style-detail-media reveal" style="order:-1">
-          <div class="style-card" style="aspect-ratio:4/3;cursor:default"><img src="/assets/img/style-boheme.jpg" srcset="/assets/img/style-boheme.webp" alt="Ambiance Bohème" loading="lazy" decoding="async" class=""></div>
-        </div>
-        <div class="reveal">
+    </section><section class="section section-alt" id="boheme" aria-labelledby="boheme-h">
+      <div class="container style-detail">
+        <figure class="style-figure reveal is-flipped"><picture><source type="image/webp" srcset="/assets/img/style-boheme.webp?v=cb7100c6"><img src="/assets/img/style-boheme.jpg?v=a8f90896" width="900" height="600" alt="Ambiance Bohème" loading="lazy" decoding="async"></picture></figure>
+        <div class="style-copy reveal">
           <span class="eyebrow">Univers</span>
-          <h2 style="margin:var(--space-3) 0">Bohème</h2>
-          <p class="lead" style="font-style:italic;margin-bottom:var(--space-4)">Textures, matières et caractère, sans perdre l'équilibre.</p>
-          <p class="muted">Le bohème assume la matière et le fait-main : fibres naturelles, tissages et pièces au caractère affirmé, réunis avec justesse pour éviter la surcharge.</p>
-          <div style="margin-top:var(--space-5)"><a class="btn btn-ghost" href="/inspirations.html">Voir les sélections <svg class="arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4"/></svg></a></div>
+          <h2 id="boheme-h">Bohème</h2>
+          <p class="lead italic">Textures, matières et caractère, sans perdre l&#x27;équilibre.</p>
+          <p class="text-2">Le bohème assume la matière et le fait-main : fibres naturelles, tissages et pièces au caractère affirmé, réunis avec justesse pour éviter la surcharge.</p>
+          <div class="section-more"><a class="btn btn-ghost" href="/inspirations.html">Voir les sélections <svg class="arrow" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4"/></svg></a></div>
         </div>
       </div>
     </section>
@@ -113,28 +112,28 @@
     <div class="footer-grid">
       <div class="footer-brand-col">
         <div class="footer-brand">
-          <img src="/assets/logo-mark.png" width="40" height="40" alt="Logo UnoSnake">
+          <img src="/assets/logo-mark-128.png?v=4fa247ca" width="40" height="40" alt="">
           <span>UnoSnake</span>
         </div>
         <p class="footer-about">Inspirations et sélections déco autour des styles scandinave, japandi et minimalisme chaleureux.</p>
       </div>
-      <div class="footer-col">
-        <h4>Explorer</h4>
+      <nav class="footer-col" aria-labelledby="f-explore">
+        <h2 class="footer-heading" id="f-explore">Explorer</h2>
         <a href="/inspirations.html">Inspirations</a>
         <a href="/styles.html">Styles</a>
         <a href="/journal.html">Journal</a>
         <a href="/about.html">À propos</a>
-      </div>
-      <div class="footer-col">
-        <h4>Styles</h4>
+      </nav>
+      <nav class="footer-col" aria-labelledby="f-styles">
+        <h2 class="footer-heading" id="f-styles">Styles</h2>
         <a href="/styles.html#scandinave">Scandinave</a><a href="/styles.html#japandi">Japandi</a><a href="/styles.html#warm-minimalism">Warm Minimalism</a><a href="/styles.html#boheme">Bohème</a>
-      </div>
-      <div class="footer-col">
-        <h4>Informations</h4>
+      </nav>
+      <nav class="footer-col" aria-labelledby="f-info">
+        <h2 class="footer-heading" id="f-info">Informations</h2>
         <a href="/affiliate.html">Transparence</a>
         <a href="/privacy.html">Confidentialité</a>
         <a href="/legal.html">Mentions légales</a>
-      </div>
+      </nav>
     </div>
     <div class="footer-bottom">
       <span>© <span data-year>2026</span> UnoSnake. Tous droits réservés.</span>
@@ -142,6 +141,6 @@
     </div>
   </div>
 </footer>
-<script src="/assets/main.js" defer></script>
+<script src="/assets/main.js?v=a39a05e2" defer></script>
 </body>
 </html>
