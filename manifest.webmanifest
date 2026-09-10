@@ -1,0 +1,21 @@
+{
+  "name": "UnoSnake",
+  "short_name": "UnoSnake",
+  "lang": "fr",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F2EBE0",
+  "theme_color": "#F2EBE0",
+  "icons": [
+    {
+      "src": "/assets/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/logo-mark.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

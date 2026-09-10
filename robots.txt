@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://unosnake-website.unosnakeshop.workers.dev/sitemap.xml
