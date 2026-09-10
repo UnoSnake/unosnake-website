@@ -7,10 +7,12 @@ on:
       - "tests/**"
       - "niches.json"
       - "requirements.txt"
+      - ".github/workflows/test.yml"
   pull_request:
     paths:
       - "scripts/**"
       - "tests/**"
+  workflow_dispatch:
 
 permissions:
   contents: read
