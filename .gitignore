@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Local state
+scripts/search_history.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node / Wrangler
+node_modules/
+.wrangler/
+
+# Secrets — NEVER commit
+*credentials*.csv
+.dev.vars
