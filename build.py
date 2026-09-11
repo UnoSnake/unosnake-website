@@ -89,6 +89,24 @@ ARTICLES = [
     {"slug":"details-piece-chaleureuse","title":"Les détails qui rendent une pièce plus chaleureuse","tag":"Inspiration","img":"art-chaleur",
      "excerpt":"Ce ne sont jamais les gros meubles qui réchauffent une pièce, mais une série de petits choix. Tour d'horizon.",
      "date":"2026-08-20","updated":"2026-09-11"},
+    {"slug":"bois-interieur-scandinave","title":"Le bois dans un intérieur scandinave : choisir et doser","tag":"Scandinave","img":"art-bois-scandinave",
+     "excerpt":"Le bois fait le style scandinave, à condition de le doser. Quelle essence choisir, où la placer et combien en montrer.",
+     "date":"2026-09-11"},
+    {"slug":"coin-lecture-chaleureux","title":"Créer un coin lecture chaleureux en 5 décisions","tag":"Inspiration","img":"art-coin-lecture",
+     "excerpt":"Un mètre carré qui donne envie de s'asseoir. L'emplacement, l'assise, la lumière, la table et les textiles, dans l'ordre.",
+     "date":"2026-09-11"},
+    {"slug":"japandi-rangement-montrer-moins","title":"Japandi et rangement : l'art de montrer moins","tag":"Japandi","img":"art-rangement-japandi",
+     "excerpt":"Le japandi ne consiste pas à posséder moins, mais à montrer moins. Fermé pour le quotidien, ouvert pour ce qu'on aime.",
+     "date":"2026-09-11"},
+    {"slug":"rotin-dans-nos-interieurs","title":"Le rotin dans nos intérieurs : comment l'utiliser","tag":"Bohème","img":"art-rotin",
+     "excerpt":"Chaleureux et vivant, le rotin réchauffe une pièce comme peu de matières. Comment le choisir, l'associer et l'entretenir.",
+     "date":"2026-09-11"},
+    {"slug":"lumiere-naturelle-artificielle-equilibre","title":"Lumière naturelle et artificielle : trouver l'équilibre","tag":"Éclairage","img":"art-lumiere-equilibre",
+     "excerpt":"On aménage une pièce en plein jour et on la vit le soir. Penser les deux lumières ensemble, comme un seul système.",
+     "date":"2026-09-11"},
+    {"slug":"erreurs-decoration-minimaliste","title":"Les erreurs courantes en décoration minimaliste","tag":"Warm Minimalism","img":"art-erreurs-minimalisme",
+     "excerpt":"Une pièce épurée peut être sereine ou glaciale. Les erreurs qui font la différence, et comment les corriger.",
+     "date":"2026-09-11"},
 ]
 
 # ----------------------------------------------------------------
@@ -341,6 +359,17 @@ DISCLOSURE = """<div class="disclosure reveal">
   <p>Certains liens présents sur UnoSnake sont des liens affiliés. Si vous effectuez un achat via ces liens, nous pouvons percevoir une commission, sans coût supplémentaire pour vous. Cela n'influence pas nos sélections.</p>
 </div>"""
 
+def articles_by_date():
+    """Articles du plus récent au plus ancien (tri stable : à date égale, l'ordre de la liste est conservé)."""
+    return sorted(ARTICLES, key=lambda a: a["date"], reverse=True)
+
+def related_articles(a, n=2):
+    """Articles « à lire ensuite » : même thème d'abord, puis les plus récents, jamais l'article courant."""
+    others = [x for x in ARTICLES if x["slug"] != a["slug"]]
+    same = [x for x in others if x["tag"] == a["tag"]]
+    rest = [x for x in others if x["tag"] != a["tag"]]
+    return (same + rest)[:n]
+
 FR_MONTHS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"]
 def fr_date(iso):
     y, m, d = iso.split("-")
@@ -360,7 +389,7 @@ def build_index():
     more = f'<div class="section-more reveal"><a class="btn btn-ghost" href="/inspirations.html">Voir toutes les inspirations {ARROW}</a></div>' if PRODUCTS else ""
     styles = "".join(style_card(s) for s in STYLES)
     cats = "".join(f'<a class="cat-card reveal" href="/inspirations.html">{ICONS[c["icon"]]}<span>{c["name"]}</span></a>' for c in CATEGORIES)
-    arts = "".join(article_card(a) for a in ARTICLES)
+    arts = "".join(article_card(a) for a in articles_by_date()[:3])
     schema = json.dumps({
         "@context":"https://schema.org","@type":"WebSite","name":"UnoSnake",
         "url":SITE_URL+"/","inLanguage":"fr",
@@ -515,7 +544,7 @@ def build_inspirations():
     write("inspirations.html", page)
 
 def build_journal():
-    arts = "".join(article_card(a, hlevel=2) for a in ARTICLES)
+    arts = "".join(article_card(a, hlevel=2) for a in articles_by_date())
     page = head("Le Journal UnoSnake — Inspirations & conseils déco",
                 "Le Journal UnoSnake : idées et conseils pour composer des intérieurs scandinaves, japandi et chaleureux. Des articles pensés comme de vraies lectures déco.",
                 "journal.html")
@@ -544,7 +573,7 @@ def build_article(a):
     <div class="section-head reveal"><span class="eyebrow">Sélection associée</span><h2 id="reco-h">Des pièces qui vont avec</h2></div>
     <div class="grid-3">{"".join(product_card(p) for p in PRODUCTS[:3])}</div>
   </aside>"""
-    related = "".join(article_card(x) for x in ARTICLES if x["slug"] != a["slug"])
+    related = "".join(article_card(x) for x in related_articles(a))
     hero_name = a.get("hero_img", a["img"])
     hero_cls = "article-hero article-hero--wide" if a.get("hero_img") else "article-hero"
     updated_html = (f' · Mis à jour le <time datetime="{a["updated"]}">{fr_date(a["updated"])}</time>'
