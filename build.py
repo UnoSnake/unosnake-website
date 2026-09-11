@@ -134,12 +134,18 @@ def image_size(path):
         return None
 
 _asset_hash = {}
+TEXT_ASSETS = (".css", ".js", ".json", ".svg", ".txt", ".xml", ".webmanifest")
 def asset_url(rel):
-    """URL versionnée (?v=hash du contenu) → cache long côté navigateur sans risque de contenu périmé."""
+    """URL versionnée (?v=hash du contenu) → cache long côté navigateur sans risque de contenu périmé.
+    Les fichiers texte sont hachés avec des fins de ligne normalisées (LF) pour que le HTML généré
+    soit identique quel que soit l'OS / core.autocrlf (build local Windows = build CI Linux)."""
     if rel not in _asset_hash:
         try:
             with open(os.path.join(HERE, rel), "rb") as f:
-                _asset_hash[rel] = hashlib.sha1(f.read()).hexdigest()[:8]
+                data = f.read()
+            if rel.lower().endswith(TEXT_ASSETS):
+                data = data.replace(b"\r\n", b"\n")
+            _asset_hash[rel] = hashlib.sha1(data).hexdigest()[:8]
         except OSError:
             _asset_hash[rel] = None
     v = _asset_hash[rel]
