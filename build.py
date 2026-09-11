@@ -475,10 +475,6 @@ def build_index():
       <div class="grid-3">{arts}</div>
     </div>
   </section>
-
-  <section class="section-sm">
-    <div class="container">{DISCLOSURE}</div>
-  </section>
 </main>"""
     page += footer()
     write("index.html", page)
@@ -513,7 +509,6 @@ def build_styles():
     </div>
   </section>
   {blocks}
-  <section class="section-sm"><div class="container">{DISCLOSURE}</div></section>
 </main>"""
     page += footer()
     write("styles.html", page)
@@ -538,7 +533,6 @@ def build_inspirations():
       {prods}
     </div>
   </section>
-  <section class="section-sm"><div class="container">{DISCLOSURE}</div></section>
 </main>"""
     page += footer()
     write("inspirations.html", page)
@@ -619,7 +613,6 @@ def build_article(a):
     </div>
   </article>
   {reco}
-  <div class="container-narrow container section-gap-sm">{DISCLOSURE}</div>
   <aside class="container section-gap" aria-labelledby="rel-h">
     <div class="section-head reveal"><span class="eyebrow">À lire ensuite</span><h2 id="rel-h">Articles similaires</h2></div>
     <div class="grid-2">{related}</div>
@@ -646,16 +639,17 @@ def build_about():
         <h2>Comment nous sélectionnons</h2>
         <p>Nos sélections s'appuient sur des critères clairs : cohérence avec un style (scandinave, japandi, minimalisme chaleureux, bohème), qualité des matières, sobriété des formes et pertinence dans la durée. Nous préférons montrer moins, mais mieux.</p>
         <h2>Notre modèle</h2>
-        <p>UnoSnake est un média d'inspiration. Lorsque vous découvrez une pièce qui vous plaît, nous vous orientons directement vers le marchand. En toute transparence : certains de ces liens sont affiliés.</p>
+        <p>UnoSnake est une marque éditoriale : nous inspirons, nous sélectionnons, nous recommandons. Lorsqu'une pièce vous plaît, nous vous orientons directement vers le marchand, sans intermédiaire. Notre façon de travailler est détaillée sur la page <a href="/affiliate.html">Transparence</a>.</p>
       </div>
-      <div class="section-more reveal">{DISCLOSURE}</div>
     </div>
   </section>
 </main>"""
     page += footer()
     write("about.html", page)
 
-def legal_page(path, title, desc, active, h1, blocks, updated="26 août 2026"):
+def legal_page(path, title, desc, active, h1, blocks, updated="26 août 2026", extra=""):
+    """Page d'information (prose). `extra` : bloc HTML optionnel placé sous le titre (ex. mention d'affiliation).
+    La mention d'affiliation (DISCLOSURE) n'apparaît que sur affiliate.html et legal.html."""
     page = head(title, desc, path)
     page += header(active)
     inner = "".join(f"<h2>{h}</h2>\n<p>{b}</p>" for h, b in blocks)
@@ -665,6 +659,7 @@ def legal_page(path, title, desc, active, h1, blocks, updated="26 août 2026"):
       <span class="eyebrow">Informations</span>
       <h1 class="page-title page-title--tight">{h1}</h1>
       <p class="muted page-updated">Dernière mise à jour : {updated}</p>
+      {extra}
       <div class="prose prose-start">{inner}</div>
     </div>
   </section>
@@ -674,12 +669,16 @@ def legal_page(path, title, desc, active, h1, blocks, updated="26 août 2026"):
 
 def build_legal():
     legal_page("affiliate.html","Transparence & affiliation | UnoSnake",
-        "Transparence UnoSnake sur les liens affiliés : comment ils fonctionnent et pourquoi ils n'influencent pas nos sélections.",
+        "Transparence UnoSnake sur les liens affiliés : comment ils fonctionnent, comment nous choisissons les pièces et pourquoi cela n'influence pas nos sélections.",
         "", "Transparence",
-        [("Nos liens affiliés","Certains liens présents sur UnoSnake sont des liens affiliés. Si vous effectuez un achat via l'un de ces liens, nous pouvons percevoir une commission, sans aucun coût supplémentaire pour vous."),
-         ("Notre approche éditoriale","L'affiliation ne change rien à l'objectif de nos contenus : partager des idées déco utiles et des pièces cohérentes avec l'esthétique UnoSnake. Une commission potentielle n'influence pas nos sélections."),
-         ("Amazon","UnoSnake participe au Programme Partenaires d'Amazon. Les liens produits pointent directement vers Amazon.fr. Les produits sont présentés comme des inspirations et des recommandations, pas comme une garantie qu'ils conviennent à chaque intérieur."),
-         ("Une question ?","Pour toute question sur une recommandation ou une relation d'affiliation, contactez-nous via la plateforme sur laquelle vous avez découvert nos contenus.")])
+        [("Ce qu'est UnoSnake","UnoSnake est une marque éditoriale dédiée à la décoration intérieure. Nous ne vendons rien directement : nous inspirons, nous sélectionnons et nous recommandons des pièces cohérentes avec les univers scandinave, japandi, minimalisme chaleureux et bohème. L'achat se fait chez le marchand, en l'occurrence Amazon.fr."),
+         ("Nos liens affiliés","Les liens « Acheter sur Amazon » présents dans la boutique et dans certains articles sont des liens affiliés. Si vous effectuez un achat via l'un de ces liens, nous pouvons percevoir une commission, sans aucun coût supplémentaire pour vous : le prix est le même que si vous étiez arrivé directement sur Amazon."),
+         ("Programme Partenaires d'Amazon","UnoSnake participe au Programme Partenaires d'Amazon EU, un programme d'affiliation conçu pour permettre à des sites de percevoir une rémunération grâce à la création de liens vers Amazon.fr. En tant que Partenaire Amazon, UnoSnake réalise un bénéfice sur les achats remplissant les conditions requises."),
+         ("Comment nous sélectionnons","Chaque pièce est choisie pour sa cohérence avec un style, la qualité apparente de ses matières, la sobriété de ses formes et sa pertinence dans la durée. Une commission potentielle n'influence ni le choix des produits ni la façon dont nous en parlons. Nous ne publions aucun avis inventé, aucune note et aucun classement sponsorisé."),
+         ("Prix, disponibilité et informations produit","Les prix, la disponibilité, les dimensions et les caractéristiques exactes sont ceux affichés sur Amazon.fr au moment de votre visite : nous ne les reproduisons pas sur UnoSnake et nous vous invitons à les vérifier sur la fiche du marchand avant tout achat. Nos descriptions sont rédigées par nos soins à partir des informations publiées par le vendeur ; elles peuvent comporter des imprécisions et ne constituent pas une garantie."),
+         ("Les visuels","Les photos d'ambiance du site proviennent de banques d'images libres de droits (crédits dans le dépôt du site). Les visuels de la boutique sont soit la photo du produit telle que publiée par le vendeur, soit une photo d'illustration signalée comme telle : dans ce cas, l'objet photographié n'est pas nécessairement le produit vendu."),
+         ("Une question ?","Pour toute question sur une recommandation ou une relation d'affiliation, contactez-nous via la plateforme sur laquelle vous avez découvert nos contenus.")],
+        updated="11 septembre 2026", extra=DISCLOSURE)
     legal_page("privacy.html","Politique de confidentialité | UnoSnake",
         "Politique de confidentialité d'UnoSnake : quelles données sont collectées (ou non) et comment vos informations sont traitées.",
         "", "Politique de confidentialité",
@@ -696,8 +695,10 @@ def build_legal():
         [("Éditeur du site","Le site UnoSnake est édité dans le cadre d'un projet éditorial dédié à la décoration intérieure."),
          ("Hébergement","Le site est hébergé sur l'infrastructure Cloudflare."),
          ("Propriété intellectuelle","Le nom, le logo et l'identité visuelle UnoSnake, ainsi que les contenus éditoriaux du site, sont protégés. Toute reproduction sans autorisation est interdite."),
-         ("Liens externes","Le site contient des liens vers des sites tiers, notamment Amazon.fr. UnoSnake n'est pas responsable du contenu de ces sites externes."),
-         ("Contact","Pour toute demande, contactez-nous via la plateforme sur laquelle vous avez découvert nos contenus.")])
+         ("Affiliation","UnoSnake participe au Programme Partenaires d'Amazon EU. Les liens « Acheter sur Amazon » sont des liens affiliés : en tant que Partenaire Amazon, UnoSnake réalise un bénéfice sur les achats remplissant les conditions requises, sans coût supplémentaire pour l'acheteur. Détails sur la page <a href=\"/affiliate.html\">Transparence</a>."),
+         ("Liens externes","Le site contient des liens vers des sites tiers, notamment Amazon.fr. UnoSnake n'est pas responsable du contenu de ces sites externes, ni des prix et disponibilités qui y sont affichés."),
+         ("Contact","Pour toute demande, contactez-nous via la plateforme sur laquelle vous avez découvert nos contenus.")],
+        updated="11 septembre 2026", extra=DISCLOSURE)
 
 def build_404():
     page = head("Page introuvable | UnoSnake", "Cette page n'existe pas ou plus.", "404.html")

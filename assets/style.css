@@ -422,6 +422,7 @@ a.product-card:hover .product-cta .arrow { transform: translateX(4px); }
   font-size: var(--fs-small); color: var(--color-text-2); max-width: 720px;
 }
 .disclosure svg { flex-shrink: 0; width: 20px; height: 20px; color: var(--color-accent-text); margin-top: 2px; }
+.page-updated + .disclosure { margin-bottom: var(--space-7); }
 
 /* ============================================================
    FOOTER
