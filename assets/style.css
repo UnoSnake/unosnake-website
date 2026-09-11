@@ -452,8 +452,8 @@ a.product-card:hover .product-cta .arrow { transform: translateX(4px); }
 .article-head h1 { margin: var(--space-3) 0 var(--space-4); }
 .article-head .lead { margin-bottom: var(--space-4); }
 .article-meta { font-size: var(--fs-small); color: var(--color-muted); margin-bottom: var(--space-6); }
-.article-hero { aspect-ratio: 16/10; border-radius: var(--radius-lg); overflow: hidden; margin-bottom: var(--space-6); box-shadow: var(--shadow-md); }
-.article-hero--wide { aspect-ratio: 21/9; }
+.article-hero { aspect-ratio: 16/10; max-width: 980px; margin-inline: auto; border-radius: var(--radius-lg); overflow: hidden; margin-bottom: var(--space-6); box-shadow: var(--shadow-md); }
+.article-hero--wide { aspect-ratio: 21/9; max-width: none; }
 .article-hero img { width: 100%; height: 100%; object-fit: cover; }
 .prose { max-width: 68ch; margin-inline: auto; }
 .prose-start { margin-inline: 0; }

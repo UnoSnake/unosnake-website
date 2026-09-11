@@ -8,6 +8,9 @@ Exécuter : python build.py  (écrit les .html à la racine du site)
 import os, re, json, html as _html, hashlib, struct
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+import sys as _sys
+_sys.path.insert(0, HERE)
+from articles_content import BODIES as ARTICLE_BODIES  # corps éditoriaux des articles du Journal
 SITE_URL = "https://unosnake-website.unosnakeshop.workers.dev"
 PARTNER_TAG = "unosnake09-21"
 MOBILE_BP = 860  # doit rester aligné avec le breakpoint de assets/style.css
@@ -79,13 +82,13 @@ CATEGORIES = [
 ARTICLES = [
     {"slug":"interieur-japandi-chaleureux","title":"7 façons de créer un intérieur Japandi chaleureux","tag":"Japandi","img":"art-japandi","hero_img":"art-hero-japandi",
      "excerpt":"Le japandi n'est pas qu'une affaire de palette neutre. Voici comment garder la chaleur tout en cultivant le calme.",
-     "date":"2026-09-02"},
+     "date":"2026-09-02","updated":"2026-09-11"},
     {"slug":"choisir-lampe-scandinave","title":"Comment choisir une lampe pour un intérieur scandinave","tag":"Éclairage","img":"art-lampe",
      "excerpt":"La lumière fait le style scandinave. Quelques repères simples pour choisir une lampe qui réchauffe la pièce.",
-     "date":"2026-08-28"},
+     "date":"2026-08-28","updated":"2026-09-11"},
     {"slug":"details-piece-chaleureuse","title":"Les détails qui rendent une pièce plus chaleureuse","tag":"Inspiration","img":"art-chaleur",
      "excerpt":"Ce ne sont jamais les gros meubles qui réchauffent une pièce, mais une série de petits choix. Tour d'horizon.",
-     "date":"2026-08-20"},
+     "date":"2026-08-20","updated":"2026-09-11"},
 ]
 
 # ----------------------------------------------------------------
@@ -544,6 +547,8 @@ def build_article(a):
     related = "".join(article_card(x) for x in ARTICLES if x["slug"] != a["slug"])
     hero_name = a.get("hero_img", a["img"])
     hero_cls = "article-hero article-hero--wide" if a.get("hero_img") else "article-hero"
+    updated_html = (f' · Mis à jour le <time datetime="{a["updated"]}">{fr_date(a["updated"])}</time>'
+                    if a.get("updated") and a["updated"] != a["date"] else "")
     schema = json.dumps({
         "@context":"https://schema.org","@type":"Article","headline":a["title"],
         "description":a["excerpt"],
@@ -560,30 +565,9 @@ def build_article(a):
             {"@type":"ListItem","position":3,"name":a["title"]},
         ]}, ensure_ascii=False)
 
-    BODIES = {
-      "interieur-japandi-chaleureux": """
-        <p>Le japandi est souvent réduit à une palette de beiges et à quelques branches dans un vase. C'est réducteur. Ce qui fait la chaleur d'un intérieur japandi, c'est un équilibre — entre le vide et le plein, le clair et le foncé, le lisse et le brut.</p>
-        <h2>1. Garder du vide, volontairement</h2>
-        <p>Le calme naît de l'espace négatif. Laissez respirer les surfaces : une étagère à moitié vide raconte plus qu'une étagère saturée.</p>
-        <h2>2. Mélanger deux bois</h2>
-        <p>Un bois clair nordique et un bois plus sombre, presque noyer, créent la profondeur qui empêche la pièce de paraître fade.</p>
-        <blockquote>La chaleur ne vient pas d'un objet, mais de la relation entre les matières.</blockquote>
-        <h2>3. Choisir la lumière basse et douce</h2>
-        <p>Une lampe à intensité chaude, posée bas, transforme l'ambiance d'une pièce dès la tombée du jour.</p>
-        <div class="pull-tip"><strong>Le détail qui compte —</strong> une seule matière naturelle vivante (lin froissé, céramique mate, rotin) suffit à réchauffer tout un mur neutre.</div>
-        <h2>4. Assumer l'artisanat</h2>
-        <p>Une pièce légèrement irrégulière, faite main, apporte l'imperfection qui rend un intérieur habité plutôt que décoré.</p>
-      """,
-    }
-    body = BODIES.get(a["slug"], f"""
-        <p>{esc(a['excerpt'])}</p>
-        <h2>Une approche simple</h2>
-        <p>Chez UnoSnake, nous partons toujours d'une idée : un intérieur réussi n'est pas le plus rempli, c'est le plus juste. Quelques repères suffisent pour transformer une pièce.</p>
-        <blockquote>Moins d'objets, mais mieux choisis.</blockquote>
-        <h2>Par où commencer</h2>
-        <p>Observez d'abord la lumière, puis les matières, enfin les proportions. C'est dans cet ordre que se construit une ambiance cohérente et chaleureuse.</p>
-        <div class="pull-tip"><strong>À retenir —</strong> une pièce se réchauffe par petites touches : une matière naturelle, une lumière basse, une asymétrie assumée.</div>
-    """)
+    body = ARTICLE_BODIES[a["slug"]]  # chaque article a un vrai corps éditorial (articles_content.py)
+    words = len(re.sub(r"<[^>]+>", " ", body).split())
+    reading_min = max(1, round(words / 200))  # estimation à ~200 mots/min
 
     page = head(f"{a['title']} | Le Journal UnoSnake", a["excerpt"], f"article-{a['slug']}.html", og_type="article")
     page += f'<script type="application/ld+json">{schema}</script>'
@@ -596,7 +580,7 @@ def build_article(a):
       <span class="article-tag">{esc(a['tag'])}</span>
       <h1>{esc(a['title'])}</h1>
       <p class="lead">{esc(a['excerpt'])}</p>
-      <p class="article-meta">Publié le <time datetime="{a['date']}">{fr_date(a['date'])}</time> · Par UnoSnake</p>
+      <p class="article-meta">Publié le <time datetime="{a['date']}">{fr_date(a['date'])}</time>{updated_html} · Lecture : {reading_min} min · Par UnoSnake</p>
     </header>
     <div class="container">
       <div class="{hero_cls}">{picture(hero_name, a['title'], lazy=False, priority=True, decorative=True)}</div>
