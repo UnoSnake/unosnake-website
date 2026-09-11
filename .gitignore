@@ -19,3 +19,8 @@ node_modules/
 # Secrets — NEVER commit
 *credentials*.csv
 .dev.vars
+
+# Local working briefs (may contain API keys) — never commit
+MASTER_PROMPT_KIRO.md
+REPRISE_KIRO.md
+*_KIRO.md
